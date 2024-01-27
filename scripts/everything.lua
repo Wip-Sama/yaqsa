@@ -1,12 +1,96 @@
 local yafla_gui_builder = require("__yafla__/scripts/experimental/gui_builder.lua")
 local yafla_gui_components = require("__yafla__/scripts/experimental/gui_components.lua")
 local ext_table = require("__yafla__/scripts/extended_table.lua")
-require("__yafla__/scripts/delayed_actions.lua")
+local actions = require("__yafla__/scripts/actions.lua")
 
-local available_presets = {}
+local presets = {
+	Belt = {
+		Small = {
+			{"transport-belt", 200},
+			{"underground-belt", 50},
+			{"splitter", 50},
+		},
+		Medium = {
+			{"transport-belt", 400},
+			{"underground-belt", 100},
+			{"splitter", 100},
+		},
+		Big = {
+			{"transport-belt", 800},
+			{"underground-belt", 200},
+			{"splitter", 200},
+		},
+	},
+	Power = {
+		Small = {
+			{"small-electric-pole", 100},
+		},
+		Medium = {
+			{"medium-electric-pole", 150},
+		},
+		Big = {
+			{"medium-electric-pole", 200},
+			{"big-electric-pole", 50},
+		},
+	},
+	Constructions = {
+		Small = {
+			{"construction-robot", 10},
+			{"personal-roboport-equipment", 1},
+			{"modular-armor", 1},
+			{"solar-panel-equipment", 7},
+			{"battery-equipment", 2},
+		},
+		Medium = {
+			{"construction-robot", 20},
+			{"personal-roboport-equipment", 2},
+			{"power-armor", 1},
+			{"solar-panel-equipment", 16},
+			{"battery-equipment", 4},
+		},
+		Big = {
+			{"construction-robot", 40},
+			{"personal-roboport-equipment", 4},
+			{"power-armor", 1},
+			{"fusion-reactor-equipment", 1},
+			{"battery-mk2-equipment", 4},
+		},
+	},
+	Personal_transport = {
+		Basic = {
+			{"car", 1}
+		},
+		Medium = {
+			{"power-armor", 1},
+			{"solar-panel-equipment", 14},
+			{"exoskeleton-equipment", 2}
+		},
+		Advanced = {
+			{"spidertron", 1}
+		}
+	},
+	--[[
+		Trains = {
+			
+		},
+		Weapons = {
+			
+		},
+	--]]
+}
+
+--[[
+	if mods...
+--]]
+
+local migrations = {}
 
 if not global.given_quickstart then
 	global.given_quickstart = {}
+end
+--TODO populate default quickstart
+if not global.default_quickstart then
+	global.quickstart_ready = {}
 end
 if not global.quickstart then
 	global.quickstart = {}
@@ -21,7 +105,7 @@ end
 local function item_preset_element(item, quantity)
 	return SPRITE_BUTTON {
 		sprite = "item/"..item,
-		tooltip = "Add these items to the quick start",
+		tooltip = { "quick-start-popup.add-item-to-quickstart" },
 		on_click = "add_element",
 		LABEL {
 			name = item,
@@ -173,11 +257,30 @@ end
 
 local reset_all_elements = function(event)
 	local elements_frame = event.element.parent.parent.children[#event.element.parent.parent.children]
-	for _, flow in pairs(elements_frame.children) do
-		for _, element in pairs(flow.children) do
-			element.children[1].elem_value = nil
-			element.children[2].text = ''
-			element.children[2].enabled = false
+	if global.default_quickstart == {} then
+		for _, flow in pairs(elements_frame.children) do
+			for _, element in pairs(flow.children) do
+				element.children[1].elem_value = nil
+				element.children[2].text = ''
+				element.children[2].enabled = false
+			end
+		end
+	else
+		for _, preset_element in pairs(global.default_quickstart) do
+			for _, flow in pairs(elements_frame.children) do
+				for _, element in pairs(flow.children) do
+					if not element.children[1].elem_value then
+						element.children[1].elem_value = preset_element[1]
+						element.children[2].text = tostring(preset_element[2])
+						element.children[2].enabled = true
+						goto next_preset_element
+					elseif preset_element[1] == element.children[1].elem_value then
+						element.children[2].text = tostring(tonumber(element.children[2].text)+preset_element[2])
+						goto next_preset_element
+					end
+				end
+			end
+			::next_preset_element::
 		end
 	end
 	update_label(elements_frame)
@@ -188,7 +291,7 @@ local update_preset = function(event)
 	scroll_pane.destroy()
 	yafla_gui_builder.build(
 		event.element.parent.parent,
-		SCROLL_PANE(item_preset_row_panel(available_presets[tonumber(event.element.name)][event.element.items[event.element.selected_index]]))
+		SCROLL_PANE(item_preset_row_panel(presets[event.element.name][event.element.items[event.element.selected_index]]))
 	)
 end
 
@@ -199,7 +302,7 @@ end
 local add_all_elements = function(event)
 	local elements_frame = event.element.parent.parent.parent.parent.children[1].children[2]
 	local dropdown = event.element.parent.children[#event.element.parent.children]
-	local this_preset = available_presets[tonumber(dropdown.name)][dropdown.items[dropdown.selected_index]]
+	local this_preset = presets[dropdown.name][dropdown.items[dropdown.selected_index]]
 
 	for _, preset_element in pairs(this_preset) do
 		for _, flow in pairs(elements_frame.children) do
@@ -364,7 +467,7 @@ local function item_selector_generator(add_reset, preset)
 			LABEL {
 				margin = 1,
 				style = "bold_label",
-				caption = "Select your items"
+				caption = { "quick-start-popup.select-your-items" }
 			},
 			EMPTY_WIDGET {
 				horizontally_stretchable = true,
@@ -374,7 +477,7 @@ local function item_selector_generator(add_reset, preset)
 				margin = 1,
 				name = 'available_space',
 				caption = inventory_size.."/0",
-				tooltip = "Available space in your inventory (stacks)"
+				tooltip = { "quick-start-popup.inventory-space" }
 			},
 			EMPTY_WIDGET {
 				horizontally_stretchable = true,
@@ -384,7 +487,7 @@ local function item_selector_generator(add_reset, preset)
 				margin = 2,
 				sprite = "utility/expand_dots",
 				style = "tool_button_red",--"frame_action_button",
-				tooltip = "Reset all the elements to default",
+				tooltip = { "quick-start-popup.clear-quickstart" },
 				size = {18,18},
 				on_click = 'reset_all_elements',
 			} or nil,
@@ -395,10 +498,10 @@ end
 
 local function Upload_button(extra_parameters)
     local element = {
-        sprite = "utility/close_white",
-        hovered_sprite = "utility/close_black",
-        clicked_sprite = "utility/close_black",
-        tooltip = "Add all the items of the preset",
+        sprite = "arrow_up_white",
+        hovered_sprite = "arrow_up_black",
+        clicked_sprite = "arrow_up_black",
+        tooltip = { "quick-start-popup.add-preset-to-quickstart" },
         style = "tool_button_blue",
     }
 
@@ -415,8 +518,6 @@ local function item_preset_generator(preset, preset_name)
 	for k, _ in pairs(preset) do 
 		table.insert(names, k)
 	end
-
-	available_presets[(#available_presets or 0)+1] = preset
 
 	return FRAME {
 		direction = "vertical",
@@ -445,7 +546,7 @@ local function item_preset_generator(preset, preset_name)
 				on_click = "add_all_elements"
 			},
 			(#names>1) and DROP_DOWN {
-				name = tostring(#available_presets),
+				name = preset_name,
 				items = names,
 				right_padding = 6,
 				selected_index = 1,
@@ -456,6 +557,25 @@ local function item_preset_generator(preset, preset_name)
 	}
 end
 
+local function item_presets_scoll_pane_generator(presets)
+
+	local pane = {
+		vertical_scroll_policy = 'always',
+		horizontal_scroll_policy = 'never',
+		vertically_scretchable = true,
+		padding = 0,
+		margin = 6,
+		maximal_height = 178*4,
+		width = 550,
+	}
+
+	for k, v in pairs(presets) do
+		table.insert(pane, item_preset_generator(v, k))
+	end
+
+	return SCROLL_PANE(pane)
+end
+
 local function generate_ui(event)
 	local player = game.get_player(event.player_index)
 	if player.get_main_inventory() == nil then
@@ -464,11 +584,12 @@ local function generate_ui(event)
 
 	local window = Window(player, {
 		window_icon = nil,
-		window_title = "Quick Start",
+		window_title = { "quick-start-popup.title" },
 		pinnable = false,
 		closable = false,
 		extra_button = Upload_button{
-			on_click = "give_items_to_players"
+			on_click = "give_items_to_players",
+			tooltip = { "quick-start-popup.give-quickstart" }
 		},
 	})
 	yafla_gui_builder.build(
@@ -477,41 +598,10 @@ local function generate_ui(event)
 			name = "quickstart_main_flow",
 			direction = "vertical",
 			item_selector_generator(true),
-			SCROLL_PANE {
-				vertical_scroll_policy = 'always',
-				horizontal_scroll_policy = 'never',
-				vertically_scretchable = true,
-				padding = 0,
-				margin = 6,
-				maximal_height = 178*4,
-				width = 550,
-				item_preset_generator({
-					small = {
-						{'iron-plate', 100},
-						{'iron-plate', 100},
-						{'iron-plate', 100},
-						{'iron-plate', 100},
-						{'iron-plate', 100},
-					},
-					medium = {
-						{'iron-plate', 200},
-						{'iron-plate', 200},
-						{'iron-plate', 200},
-						{'iron-plate', 200},
-						{'iron-plate', 200},
-					},
-					big = {
-						{'iron-plate', 300},
-						{'iron-plate', 300},
-						{'iron-plate', 300},
-						{'iron-plate', 300},
-						{'iron-plate', 300},
-					},
-				}, "Iron preset"),
-			}
+			item_presets_scoll_pane_generator(presets)
 		}
 	)
-	Delay_action(5, update_all_elements, {scroll_pane = window.children[2].children[1].children[2]})
+	actions.delay_action(5, update_all_elements, {scroll_pane = window.children[2].children[1].children[2]})
 end
 
 local function handle_new_player(event)

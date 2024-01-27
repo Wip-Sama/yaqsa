@@ -1,5 +1,17 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.0
-Date: 2023-11-17
+Version: 0.1.0
+Date: 2024-01-15
   Added:
-    - Placeholder
+    - Everything
+  Planned:
+    - Quick revive kit (or maybe another mod)
+    - A command to edit the quickstart after it has been set
+    - A way for other mods to add preset
+    - Search bar for the presets
+    - A way to export your quickstart to a string and import it somewhere (maybe export it in blueprint in a combinator?)
+    - Rewrite some core logic to make it tighter (just the normal urge of each programmer to refactor its code because it's garbage)
+    - Scripts for migrations (for migration I mean some edge cases while updating the mod/changing presets)
+    - Localization
+    - Basic quickstart for mods like Krastorio
+  Notes:
+    - This mod is actually in beta, bugs are to be expected
