@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2024-03-26
+  Bugfixes:
+    - https://mods.factorio.com/mod/yaqsa/discussion/65f8c8cb2b98489a26eadde2
+      - Error when clearing the quickstart at the start
+      - Error when entering in a scenario without a player character
+---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 2024-01-15
   Added:

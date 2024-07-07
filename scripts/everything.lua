@@ -257,7 +257,7 @@ end
 
 local reset_all_elements = function(event)
 	local elements_frame = event.element.parent.parent.children[#event.element.parent.parent.children]
-	if global.default_quickstart == {} then
+	if not global.default_quickstart or global.default_quickstart == {} then
 		for _, flow in pairs(elements_frame.children) do
 			for _, element in pairs(flow.children) do
 				element.children[1].elem_value = nil
@@ -632,7 +632,7 @@ local function handle_configuration_changed(event)
 	end
 	--Open menu for player with the lowest id that is admin
 	local player_1 = game.get_player(1)
-	if player_1.connected and player_1.admin then
+	if player_1 and player_1.connected and player_1.admin then
 		generate_ui({player_index = 1})
 		return
 	end
