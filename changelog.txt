@@ -1,4 +1,34 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2024-12-04
+  Added:
+    - /quickstart to give the quickstart to a player
+    - /death_quickstart to give the death quickstart to YOURSELF
+    - /no_quickstart to forfeit the quickstart
+    - [ADMIN] /force_quickstart to give the quickstart to a player even if it has already received it once (clear the inventory) [me, all, *player_index]
+    - [ADMIN] /retract_quickstart to remove the player from the list of player who received the quickstart (for debug purpuses) [me, all, *player_index]
+    - [ADMIN] /edit_quickstart to edit the quickstart of a player [death quiskatrt not working at this date in time]
+    - [ADMIN] /edit_death_quickstart to edit the death quickstart of a player [death quiskatrt not working at this date in time]
+  Bugfixes:
+    - Fixed crash on start after adding compatibility with planet picker mod
+  Changes:
+    - Now the gui will appear from the start even with the planet picker mod
+  Known Issues:
+    - If you add an element while planet picker mod is enabled and the player is not on the surface, the count will set the main inventory size to 0, to fix this you need to select a planet and add/remove an item to update the gui, Ill fix this on a later date
+  Planned:
+    - Death quickstart
+    - Support for quality
+---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2024-12-04
+  Bugfixes:
+    - Added compatibility with planet picker mod
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2024-12-03
+  Changes:
+    - Updated t factorio 2.0    
+---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 2024-03-26
   Bugfixes:
