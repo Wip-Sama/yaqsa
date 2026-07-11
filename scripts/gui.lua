@@ -117,9 +117,12 @@ local function update_selector_gui(self)
         end
     end
 
-    local items = quick.quickstart.get_items()
+    local is_death_quickstart = self.is_death_quickstart
+    local is_fix_window = self.is_fix_window
+    local quickstart_module = is_death_quickstart and quick.death_quickstart or quick.quickstart
+    local items = quickstart_module.get_items()
 
-    if quick.quickstart.is_broken() then
+    if is_fix_window then
         local counter = 1
         for _, flow in pairs(self.scroll_pane.children) do
             for _, element in pairs(flow.children) do
@@ -133,7 +136,10 @@ local function update_selector_gui(self)
             end
         end
     else
-        for count, item in pairs(inventory.get_contents()) do
+        local inventory_contents = inventory.get_contents()
+        local new_items = {}
+        for _, item in pairs(inventory_contents) do
+            table.insert(new_items, {name = item.name, amount = item.count})
             for _, flow in pairs(self.scroll_pane.children) do
                 for _, element in pairs(flow.children) do
                     if not element.children[1].elem_value then
@@ -141,15 +147,15 @@ local function update_selector_gui(self)
                         element.children[2].text = tostring(item.count)
                         element.children[2].enabled = true
                         goto next_item
-                    elseif item == element.children[1].elem_value then
-                        element.children[2].text = tostring(tonumber(element.children[2].text) + count)
+                    elseif item.name == element.children[1].elem_value then
+                        element.children[2].text = tostring(tonumber(element.children[2].text) + item.count)
                         goto next_item
                     end
                 end
             end
-            quick.quickstart.set_items(inventory.get_contents())
             ::next_item::
         end
+        quickstart_module.set_items(new_items)
         inventory.clear()
     end
     ::update_label_and_quit::
@@ -411,7 +417,7 @@ end
 ---------------NEED  REWORK---------------
 ------------------------------------------
 
-function yaqsa_gui.quickstart_window(event)
+local function build_quickstart_window(event, title, is_fix_window, is_death_quickstart)
     local player = game.get_player(event.player_index)
     if not player then return end
     local inventory = player.get_main_inventory()
@@ -422,9 +428,9 @@ function yaqsa_gui.quickstart_window(event)
             window = Window(player, {
                 name = "quickstart_popup",
                 window_icon = nil,
-                window_title = { "quick-start-popup.title" },
+                window_title = { title },
                 pinnable = false,
-                closable = false,
+                closable = true,
                 extra_button = Upload_button {
                     on_click = "give_quickstart_to_players",
                     tooltip = { "quick-start-popup.give-quickstart" }
@@ -440,6 +446,10 @@ function yaqsa_gui.quickstart_window(event)
                 },
                 player.index
             )
+            player.gui.screen.quickstart_popup.tags = {
+                is_death_quickstart = is_death_quickstart,
+                is_fix_window = is_fix_window
+            }
         else
             window = player.gui.screen.quickstart_popup
         end
@@ -452,151 +462,26 @@ function yaqsa_gui.quickstart_window(event)
     end
 
     if inventory and inventory.get_item_count() > 0 then
-        update_selector_gui({ scroll_pane = out })
+        update_selector_gui({ scroll_pane = out, is_death_quickstart = is_death_quickstart, is_fix_window = is_fix_window })
     else
-        actions.delay_action(5, update_selector_gui, { scrol_pane = out })
+        actions.delay_action(5, update_selector_gui, { scroll_pane = out, is_death_quickstart = is_death_quickstart, is_fix_window = is_fix_window })
     end
+end
+
+function yaqsa_gui.quickstart_window(event)
+    build_quickstart_window(event, "quick-start-popup.title", false, false)
 end
 
 function yaqsa_gui.fix_quickstart_window(event)
-    local player = game.get_player(event.player_index)
-    if not player then return end
-    local inventory = player.get_main_inventory()
-    local window = nil
-
-    if inventory ~= nil then
-        if not player.gui.screen.quickstart_popup then
-            window = Window(player, {
-                name = "quickstart_popup",
-                window_icon = nil,
-                window_title = { "quick-start-popup.fix-title" },
-                pinnable = false,
-                closable = false,
-                extra_button = Upload_button {
-                    on_click = "give_quickstart_to_players",
-                    tooltip = { "quick-start-popup.give-quickstart" }
-                },
-            })
-            yafla_gui_builder.build(
-                window,
-                FLOW {
-                    name = "quickstart_main_flow",
-                    direction = "vertical",
-                    yaqsa_gui.Item_selector_pane(true),
-                    yaqsa_gui.Item_presets_pane(presets.get_presets())
-                },
-                player.index
-            )
-        else
-            window = player.gui.screen.quickstart_popup
-        end
-    end
-
-    local out = nil
-
-    if window then
-        out = window.children[2].children[1].children[2]
-    end
-
-    if inventory and inventory.get_item_count() > 0 then
-        update_selector_gui({ scroll_pane = out })
-    else
-        actions.delay_action(5, update_selector_gui, { scrol_pane = out })
-    end
+    build_quickstart_window(event, "quick-start-popup.fix-title", true, false)
 end
 
 function yaqsa_gui.death_quickstart_window(event)
-    local player = game.get_player(event.player_index)
-    if not player then return end
-    local inventory = player.get_main_inventory()
-    local window = nil
-
-    if inventory ~= nil then
-        if not player.gui.screen.quickstart_popup then
-            window = Window(player, {
-                name = "quickstart_popup",
-                window_icon = nil,
-                window_title = { "quick-start-popup.title" },
-                pinnable = false,
-                closable = false,
-                extra_button = Upload_button {
-                    on_click = "give_quickstart_to_players",
-                    tooltip = { "quick-start-popup.give-quickstart" }
-                },
-            })
-            yafla_gui_builder.build(
-                window,
-                FLOW {
-                    name = "quickstart_main_flow",
-                    direction = "vertical",
-                    yaqsa_gui.Item_selector_pane(true),
-                    yaqsa_gui.Item_presets_pane(presets.get_presets())
-                },
-                player.index
-            )
-        else
-            window = player.gui.screen.quickstart_popup
-        end
-    end
-
-    local out = nil
-
-    if window then
-        out = window.children[2].children[1].children[2]
-    end
-
-    if inventory and inventory.get_item_count() > 0 then
-        update_selector_gui({ scroll_pane = out })
-    else
-        actions.delay_action(5, update_selector_gui, { scrol_pane = out })
-    end
+    build_quickstart_window(event, "quick-start-popup.death-title", false, true)
 end
 
 function yaqsa_gui.fix_death_quickstart_window(event)
-    local player = game.get_player(event.player_index)
-    if not player then return end
-    local inventory = player.get_main_inventory()
-    local window = nil
-
-    if inventory ~= nil then
-        if not player.gui.screen.quickstart_popup then
-            window = Window(player, {
-                name = "quickstart_popup",
-                window_icon = nil,
-                window_title = { "quick-start-popup.fix-title" },
-                pinnable = false,
-                closable = false,
-                extra_button = Upload_button {
-                    on_click = "give_quickstart_to_players",
-                    tooltip = { "quick-start-popup.give-quickstart" }
-                },
-            })
-            yafla_gui_builder.build(
-                window,
-                FLOW {
-                    name = "quickstart_main_flow",
-                    direction = "vertical",
-                    yaqsa_gui.Item_selector_pane(true),
-                    yaqsa_gui.Item_presets_pane(presets.get_presets())
-                },
-                player.index
-            )
-        else
-            window = player.gui.screen.quickstart_popup
-        end
-    end
-
-    local out = nil
-
-    if window then
-        out = window.children[2].children[1].children[2]
-    end
-
-    if inventory and inventory.get_item_count() > 0 then
-        update_selector_gui({ scroll_pane = out })
-    else
-        actions.delay_action(5, update_selector_gui, { scrol_pane = out })
-    end
+    build_quickstart_window(event, "quick-start-popup.death-fix-title", true, true)
 end
 
 ------------------------------------------
@@ -621,35 +506,12 @@ end
 
 local reset_all_elements = function(event)
     local elements_frame = event.element.parent.parent.children[#event.element.parent.parent.children]
-    local items = quick.quickstart.get_items()
 
-    if #items <= 0 then
-        for _, flow in pairs(elements_frame.children) do
-            for _, element in pairs(flow.children) do
-                element.children[1].elem_value = nil
-                element.children[2].text = ''
-                element.children[2].enabled = false
-            end
-        end
-    else
-        for _, preset_element in pairs(items) do
-            for _, flow in pairs(elements_frame.children) do
-                for _, element in pairs(flow.children) do
-                    if not element.children[1].elem_value then
-                        if preset_element.amount <= 0 then
-                            goto next_preset_element
-                        end
-                        element.children[1].elem_value = preset_element.name
-                        element.children[2].text = tostring(preset_element.amount)
-                        element.children[2].enabled = true
-                        goto next_preset_element
-                    elseif preset_element.name == element.children[1].elem_value then
-                        element.children[2].text = tostring(tonumber(element.children[2].text) + preset_element.amount)
-                        goto next_preset_element
-                    end
-                end
-            end
-            ::next_preset_element::
+    for _, flow in pairs(elements_frame.children) do
+        for _, element in pairs(flow.children) do
+            element.children[1].elem_value = nil
+            element.children[2].text = ''
+            element.children[2].enabled = false
         end
     end
 
@@ -719,18 +581,30 @@ local add_element = function(event)
 end
 
 local give_quickstart_to_players = function(event)
-    quick.quickstart.set_ready()
+    local window = event.element.parent.parent
+    local tags = window.tags or {}
+    local is_death_quickstart = tags.is_death_quickstart
+    local quickstart_module = is_death_quickstart and quick.death_quickstart or quick.quickstart
+
+    quickstart_module.set_ready()
+    
+    local new_items = {}
     local elements_frame = event.element.parent.parent.children[2].children[1].children[2]
     for _, flow in pairs(elements_frame.children) do
         for _, element in pairs(flow.children) do
-            quick.quickstart.add_item({ name = element.children[1].elem_value, amount = tonumber(element.children[2].text) or 0, type = "item" })
+            if element.children[1].elem_value then
+                table.insert(new_items, { name = element.children[1].elem_value, amount = tonumber(element.children[2].text) or 0, type = "item" })
+            end
         end
     end
+    quickstart_module.set_items(new_items)
 
-    for _, v in pairs(game.players) do
-        if not quick.quickstart.is_given_to(v.index) then
-            player_functions.give_quickstart_to_player(v)
-            quick.quickstart.gave_to(v.index)
+    if not is_death_quickstart then
+        for _, v in pairs(game.players) do
+            if not quick.quickstart.is_given_to(v.index) then
+                player_functions.give_quickstart_to_player(v)
+                quick.quickstart.gave_to(v.index)
+            end
         end
     end
     event.element.parent.parent.destroy()

@@ -22,14 +22,13 @@ end
 
 ---@param player_index integer
 function quickstart.retract_given_to(player_index)
-    if not quickstart.is_given_to(player_index) then return end
-    table.remove(storage.quickstart.given_to, player_index)
+    storage.quickstart.given_to[player_index] = nil
 end
 
 ---Should be called **AFTER** the player has been given the items
 ---@param player_index integer
 function quickstart.gave_to(player_index)
-    table.insert(storage.quickstart.given_to, player_index)
+    storage.quickstart.given_to[player_index] = true
 end
 
 function quickstart.clear_given_to()
@@ -99,12 +98,33 @@ end
 
 
 function death_quickstart.get_items()
-    return util.copy(storage.quickstart.items)
+    return util.copy(storage.death_quickstart.items)
 end
 
 ---@param items Ingredient.base[]
 function death_quickstart.set_items(items)
-    storage.quickstart.items = items
+    storage.death_quickstart.items = {}
+    for _, item in pairs(items) do
+        for _, v in pairs(storage.death_quickstart.items) do
+            if v.name == item.name then
+                v.amount = v.amount + item.amount
+                goto next_element
+            end
+        end
+        table.insert(storage.death_quickstart.items, item)
+        ::next_element::
+    end
+end
+
+---@param item Ingredient.base
+function death_quickstart.add_item(item)
+    for _, v in pairs(storage.death_quickstart.items) do
+        if v.name == item.name then
+            v.amount = v.amount + item.amount
+            return
+        end
+    end
+    table.insert(storage.death_quickstart.items, item)
 end
 
 ---comment

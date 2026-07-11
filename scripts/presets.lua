@@ -48,7 +48,7 @@ local presets = {
             { type = "item", name = "construction-robot",          amount = 40 },
             { type = "item", name = "personal-roboport-equipment", amount = 4 },
             { type = "item", name = "power-armor",                 amount = 1 },
-            { type = "item", name = "fusion-reactor-equipment",    amount = 1 },
+            { type = "item", name = "fission-reactor-equipment",   amount = 1 },
             { type = "item", name = "battery-mk2-equipment",       amount = 4 },
         },
     },

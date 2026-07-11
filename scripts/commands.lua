@@ -2,19 +2,32 @@ local gui = require("__yaqsa__/scripts/gui.lua")
 local quick = require("__yaqsa__/scripts/quickstart.lua")
 local player_functions = require("__yaqsa__/scripts/player.lua")
 
-commands.add_command("quickstart", nil, function(command)
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
+local function get_valid_player(command)
+    if command.player_index == nil then return nil end
+    return game.get_player(command.player_index)
+end
+
+local function get_admin_player(command)
+    local player = get_valid_player(command)
+    if not player then return nil end
+    if not player.admin then
+        player.print({"yaqsa-messages.not-an-admin"})
+        return nil
     end
+    return player
+end
+
+commands.add_command("quickstart", nil, function(command)
+    local player = get_valid_player(command)
+    if not player then return end
     if not quick.quickstart.is_ready() then
-        player.print("Quickstart is not ready")
+        player.print({"yaqsa-messages.quickstart-not-ready"})
         return
     end
 
     if command.parameter == "me" then
         if quick.quickstart.is_given_to(player.index) then
-            player.print("You already received the quickstart items")
+            player.print({"yaqsa-messages.already-received"})
             return
         end
         player_functions.give_quickstart_to_player(player)
@@ -23,22 +36,15 @@ commands.add_command("quickstart", nil, function(command)
             player_functions.give_quickstart_to_player(p)
         end
     else
-        player.print("Only 'me' and 'all' are valid parameters")
+        player.print({"yaqsa-messages.invalid-parameters"})
     end
 end)
 
 commands.add_command("force_quickstart", nil, function(command)
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
-    end
+    local player = get_admin_player(command)
+    if not player then return end
     if not quick.quickstart.is_ready() then
-        player.print("Quickstart is not ready")
-        return
-    end
-
-    if not player.admin then
-        player.print("You are not an admin")
+        player.print({"yaqsa-messages.quickstart-not-ready"})
         return
     end
 
@@ -53,28 +59,19 @@ commands.add_command("force_quickstart", nil, function(command)
     elseif tonumber(command.parameter) ~= nil then
         local p = game.get_player(tonumber(command.parameter))
         if p == nil then
-            player.print("Player not found")
+            player.print({"yaqsa-messages.player-not-found"})
             return
         end
         quick.quickstart.retract_given_to(p.index)
         player_functions.give_quickstart_to_player(p)
     else
-        player.print("Only 'me' and 'all' and player_indexes are valid parameters")
+        player.print({"yaqsa-messages.invalid-admin-parameters"})
     end
 end)
 
 commands.add_command("edit_quickstart", nil, function(command)
-    if command.player_index == nil then
-        return
-    end
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
-    end
-    if not player.admin then
-        player.print("You are not an admin")
-        return
-    end
+    local player = get_admin_player(command)
+    if not player then return end
 
     quick.quickstart.set_broken()
     gui.fix_quickstart_window({ player_index = player.index })
@@ -82,17 +79,8 @@ commands.add_command("edit_quickstart", nil, function(command)
 end)
 
 commands.add_command("retract_quickstart", nil, function(command)
-    if command.player_index == nil then
-        return
-    end
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
-    end
-    if not player.admin then
-        player.print("You are not an admin")
-        return
-    end
+    local player = get_admin_player(command)
+    if not player then return end
 
     if command.parameter == "me" then
         quick.quickstart.retract_given_to(player.index)
@@ -103,59 +91,36 @@ commands.add_command("retract_quickstart", nil, function(command)
     elseif tonumber(command.parameter) ~= nil then
         local p = game.get_player(tonumber(command.parameter))
         if p == nil then
-            player.print("Player not found")
+            player.print({"yaqsa-messages.player-not-found"})
             return
         end
         quick.quickstart.retract_given_to(p.index)
     else
-        player.print("Only 'me' and 'all' and player_indexes are valid parameters")
+        player.print({"yaqsa-messages.invalid-admin-parameters"})
     end
 
 end)
 
 commands.add_command("no_quickstart", nil, function(command)
-    if command.player_index == nil then
-        return
-    end
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
-    end
+    local player = get_valid_player(command)
+    if not player then return end
 
     quick.quickstart.gave_to(player.index)
-    player.print("You will not receive the quickstart items")
-
+    player.print({"yaqsa-messages.forfeit-quickstart"})
 end)
 
 commands.add_command("edit_death_quickstart", nil, function(command)
-    if command.player_index == nil then
-        return
-    end
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
-    end
+    local player = get_admin_player(command)
+    if not player then return end
 
-    if not player.admin then
-        player.print("You are not an admin")
-        return
-    end
-
-    -- quick.death_quickstart.set_broken()
-    player.print("Death quickstart is still not available")
-    -- gui.fix_death_quickstart_window({ player_index = player.index })
+    quick.death_quickstart.set_broken()
+    gui.fix_death_quickstart_window({ player_index = player.index })
 
 end)
 
 commands.add_command("death_quickstart", nil, function(command)
-    if command.player_index == nil then
-        return
-    end
-    local player = game.get_player(command.player_index)
-    if player == nil then
-        return
-    end
+    local player = get_valid_player(command)
+    if not player then return end
 
-    player.print("Death quickstart is still not available")
-    -- player_functions.give_death_quickstart_to_player({ player = player, try_again = 5 })
+    player_functions.give_death_quickstart_to_player({ player = player, try_again = 5 })
 end)

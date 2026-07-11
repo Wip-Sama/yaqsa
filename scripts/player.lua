@@ -39,15 +39,15 @@ end
 ---@param data death_quickstart_data
 function player_functions.give_death_quickstart_to_player(data)
 	local inventory = data.player.get_main_inventory()
-	try_again = try_again or 5
+	local try_again = data.try_again or 5
 
 	if inventory == nil then
 		if try_again <= 0 then
 			print("Player "..data.player.index.." inventory was nil for too long, giving up on giving death quickstart")
 			return
 		end
-		print("Player "..data.player.index.." inventory is nil, giving items again in 20 ticks for "..tostring(data.try_again).." more times")
-		actions.delay_action(40, player_functions.give_quickstart_to_player, {player = data.player, try_again=data.try_again-1} )
+		print("Player "..data.player.index.." inventory is nil, giving items again in 20 ticks for "..tostring(try_again).." more times")
+		actions.delay_action(40, player_functions.give_death_quickstart_to_player, {player = data.player, try_again=try_again-1} )
 		return
 	end
 

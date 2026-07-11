@@ -1,4 +1,20 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 2026-07-12
+  Added:
+    - Missing localization strings
+    - A 'Cancel Edit' button to the quickstart UI.
+  Changes:
+    - Updated factorio_version to 2.1.
+    - Updated equipment preset from fusion to fission reactor.
+  Bugfixes:
+    - Fixed boolean logic bug on `first_cutscene` storage initialization.
+    - Implemented missing logic for `on_player_respawned` event to trigger death quickstart.
+    - Fixed death quickstart state overlapping with normal quickstart.
+    - Fixed `edit_quickstart` unexpectedly clearing the player inventory.
+    - Improved 'Clear Quickstart' button behavior to strictly empty the UI.
+    - Refactored redundant admin permission checks in chat commands.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
 Date: 2024-12-04
   Added:

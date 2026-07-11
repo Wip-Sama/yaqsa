@@ -16,7 +16,10 @@ local commands = require("__yaqsa__/scripts/commands.lua")
 local migrations = {}
 
 
-storage.first_cutscene = storage.first_cutscene or true
+if storage.first_cutscene == nil then
+    log("[YAQSA] Initializing first_cutscene storage flag.")
+    storage.first_cutscene = true
+end
 
 local on_player_created = function(event)
     if event.player_index ~= 1 then
@@ -61,7 +64,8 @@ local on_player_joined_game = function(event)
 end
 
 local on_player_respawned = function(event)
-    return
+    log("[YAQSA] Player respawned, triggering death quickstart.")
+    player_functions.give_death_quickstart_to_player({ player = game.get_player(event.player_index), try_again = 5 })
 end
 
 local on_configuration_changed = function(event)

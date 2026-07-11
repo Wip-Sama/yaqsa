@@ -1,13 +1,13 @@
 {
 	"name": "yaqsa",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"title": "YAQSA - Yet Another Quick Start Attempt",
 	"author": "WipMod",
-	"description": "Quick Start stuff stuff",
-	"factorio_version": "2.0",
+	"description": "Configure multiplayer quickstarts and death recoveries dynamically in-game with an intuitive GUI, no file editing required!",
+	"factorio_version": "2.1",
 	"contact": "https://t.me/smastermega",
 	"dependencies": [
-		"base >= 2.0.0",
+		"base >= 2.1.0",
 		"yafla >= 0.1.13"
 	]
 }	
