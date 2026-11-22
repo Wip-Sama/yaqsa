@@ -1,11 +1,15 @@
-# Ignore version control
+# Ignore version control and editor config
 .git
 .gitignore
+.gitattributes
+.vscode/
 
-# Ignore build script itself
+# Ignore build script and portal metadata
 package_mod.py
+mod_portal_description.md
 
 # Ignore other files
+*.zip
 *.kra
 *.psd
 *.xlsx
