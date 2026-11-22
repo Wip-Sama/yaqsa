@@ -10,6 +10,7 @@ storage.quickstart = storage.quickstart or {
 storage.death_quickstart = storage.death_quickstart or {
     items = {},
     status = 0,
+    broken_items = {},
 }
 
 local quickstart = {}
@@ -84,6 +85,7 @@ end
 ---comment
 ---@param name string
 function quickstart.remove_broken_item(name)
+    storage.quickstart.broken_items = storage.quickstart.broken_items or {}
     for i, item in pairs(storage.quickstart.items) do
         if item.name == name then
             table.insert(storage.quickstart.broken_items, table.remove(storage.quickstart.items, i))
@@ -130,6 +132,7 @@ end
 ---comment
 ---@param name string
 function death_quickstart.remove_broken_item(name)
+    storage.death_quickstart.broken_items = storage.death_quickstart.broken_items or {}
     for i, item in pairs(storage.death_quickstart.items) do
         if item.name == name then
             table.insert(storage.death_quickstart.broken_items, table.remove(storage.death_quickstart.items, i))

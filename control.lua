@@ -64,33 +64,34 @@ local on_player_joined_game = function(event)
 end
 
 local on_player_respawned = function(event)
+    if not quick.death_quickstart.is_ready() then
+        return
+    end
     log("[YAQSA] Player respawned, triggering death quickstart.")
     player_functions.give_death_quickstart_to_player({ player = game.get_player(event.player_index), try_again = 5 })
 end
 
+local function filter_missing_items(quickstart_module, prototype_items)
+    local removed_any = false
+    for _, v in pairs(quickstart_module.get_items()) do
+        if not prototype_items[v.name] then
+            quickstart_module.remove_broken_item(v.name)
+            removed_any = true
+        end
+    end
+    if removed_any then
+        quickstart_module.set_broken()
+    end
+    return removed_any
+end
+
 local on_configuration_changed = function(event)
-    quick.quickstart.set_broken()
-    quick.death_quickstart.set_broken()
-
     local prototype_items = prototypes.item
-    local quickstart_items = quick.quickstart.get_items()
-    local death_quickstart_items = quick.death_quickstart.get_items()
+    local quickstart_broken = filter_missing_items(quick.quickstart, prototype_items)
+    filter_missing_items(quick.death_quickstart, prototype_items)
 
-    for item, _ in pairs(prototype_items) do
-        for _, v in pairs(quickstart_items) do
-            if item == v.name then
-                quick.quickstart.remove_broken_item(item)
-                goto death_quickstart
-            end
-        end
-        ::death_quickstart::
-        for _, v in pairs(death_quickstart_items) do
-            if item == v.name then
-                quick.death_quickstart.remove_broken_item(item)
-                goto next_item
-            end
-        end
-        ::next_item::
+    if not quickstart_broken then
+        return
     end
 
     for _, player in pairs(game.players) do
@@ -118,8 +119,6 @@ script.on_event(defines.events.on_player_created, on_player_created)
 
 -- Death quickstart
 script.on_event(defines.events.on_player_respawned, on_player_respawned)
-script.on_event(defines.events.on_pre_player_died, on_player_respawned)
-script.on_event(defines.events.on_player_died, on_player_respawned)
 
 -- script.on_load(on_load)
 script.on_configuration_changed(on_configuration_changed)

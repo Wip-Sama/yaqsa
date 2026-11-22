@@ -1,6 +1,6 @@
 {
 	"name": "yaqsa",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"title": "YAQSA - Yet Another Quick Start Attempt",
 	"author": "WipMod",
 	"description": "Configure multiplayer quickstarts and death recoveries dynamically in-game with an intuitive GUI, no file editing required!",
@@ -8,6 +8,6 @@
 	"contact": "https://t.me/smastermega",
 	"dependencies": [
 		"base >= 2.1.0",
-		"yafla >= 0.2.1"
+		"yafla >= 0.2.2"
 	]
 }	

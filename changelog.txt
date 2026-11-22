@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.2
+Date: 22/11/2026
+  Bugfixes:
+    - Fixed crash in on_configuration_changed when death_quickstart.broken_items was uninitialized
+    - Fixed on_configuration_changed removing valid items instead of missing prototypes
+    - Fixed death quickstart clearing player inventory before death or when death quickstart was not configured
+    - Fixed presets.lua empty table check (`== {}` replaced with `next(...) == nil`)
+    - Fixed GUI typo `vertically_scretchable`, single-size preset add_all_elements crash, and pagination slice offset
+    - Fixed chat commands `force_quickstart all` and `retract_quickstart all` using wrong player index
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2026-07-12
   Added:

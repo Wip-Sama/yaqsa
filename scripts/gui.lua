@@ -179,7 +179,7 @@ function yaqsa_gui.Item_selector_pane(add_reset, preset)
         vertical_scroll_policy = 'always',
         horizontal_scroll_policy = 'never',
         horizontally_stretchable = true,
-        vertically_scretchable = true,
+        vertically_stretchable = true,
         margin = 0,
         padding = 0,
     }
@@ -222,7 +222,7 @@ function yaqsa_gui.Item_selector_pane(add_reset, preset)
             },
             EMPTY_WIDGET {
                 horizontally_stretchable = true,
-                vertically_scretchable = true,
+                vertically_stretchable = true,
             },
             LABEL {
                 margin = 1,
@@ -232,7 +232,7 @@ function yaqsa_gui.Item_selector_pane(add_reset, preset)
             },
             EMPTY_WIDGET {
                 horizontally_stretchable = true,
-                vertically_scretchable = true,
+                vertically_stretchable = true,
             },
             add_reset and SPRITE_BUTTON {
                 margin = 2,
@@ -256,13 +256,16 @@ function yaqsa_gui.update_label(elements)
     for _, flow in pairs(elements.children) do
         for _, element in pairs(flow.children) do
             if element.children[1].elem_value then
-                local quantity = tonumber(element.children[2].text) or 0
-                space_used = space_used + math.ceil(quantity / prototypes.item[element.children[1].elem_value]
-                    .stack_size)
+                local item_proto = prototypes.item[element.children[1].elem_value]
+                if item_proto then
+                    local quantity = tonumber(element.children[2].text) or 0
+                    space_used = space_used + math.ceil(quantity / item_proto.stack_size)
+                end
             end
         end
     end
-    local inventory = game.get_player(1).get_main_inventory()
+    local player1 = game.get_player(1)
+    local inventory = player1 and player1.get_main_inventory() or nil
     local inv_size = 0
 
     if inventory ~= nil then
@@ -295,7 +298,7 @@ local function Item_preset_element(item_name, amount)
         LABEL {
             name = item_name,
             position = defines.relative_gui_position.left,
-            vertically_scretchable = true,
+            vertically_stretchable = true,
             ignored_by_interaction = true,
             caption = tostring(amount),
             style = "bold_label",
@@ -322,13 +325,13 @@ local function Item_preset_row_panel(items)
         vertical_scroll_policy = 'always',
         horizontal_scroll_policy = 'never',
         horizontally_stretchable = true,
-        vertically_scretchable = true,
+        vertically_stretchable = true,
         margin = 0,
         padding = 0,
     }
 
     for i = 1, math.ceil(number_of_elements / 10) do
-        table.insert(rows_pane, Item_preset_row(ext_table.slice(items, i, i * 10)))
+        table.insert(rows_pane, Item_preset_row(ext_table.slice(items, (i - 1) * 10 + 1, i * 10)))
     end
 
     -- for i = 1, math.floor(number_of_elements / 10) do
@@ -373,7 +376,7 @@ local function Item_preset(preset_name, preset)
             },
             EMPTY_WIDGET {
                 horizontally_stretchable = true,
-                vertically_scretchable = true,
+                vertically_stretchable = true,
             },
             Upload_button {
                 padding = 1,
@@ -396,7 +399,7 @@ function yaqsa_gui.Item_presets_pane(preset)
     local pane = {
         vertical_scroll_policy = 'always',
         horizontal_scroll_policy = 'never',
-        vertically_scretchable = true,
+        vertically_stretchable = true,
         padding = 0,
         margin = 6,
         maximal_height = 178 * 4,
@@ -520,11 +523,12 @@ end
 
 local update_preset = function(event)
     local scroll_pane = event.element.parent.parent.children[#event.element.parent.parent.children]
+    local preset_items = presets.get_preset(event.element.name, event.element.items[event.element.selected_index])
+    if not preset_items then return end
     scroll_pane.destroy()
     yafla_gui_builder.build(
         event.element.parent.parent,
-        SCROLL_PANE(Item_preset_row_panel(storage.presets[event.element.name]
-            [event.element.items[event.element.selected_index]])),
+        SCROLL_PANE(Item_preset_row_panel(preset_items)),
         event.player_index
     )
 end
@@ -534,10 +538,13 @@ local text_updated = function(event)
 end
 
 local add_all_elements = function(event)
-    local elements_frame =event.element.parent.parent.parent.parent.children[1].children[2]
-    local dropdown = event.element.parent.children[#event.element.parent.children]
+    local elements_frame = event.element.parent.parent.parent.parent.children[1].children[2]
+    local header_flow = event.element.parent
+    local last_child = header_flow.children[#header_flow.children]
+    local preset_name = (last_child and last_child.type == "drop-down") and last_child.name or header_flow.children[1].caption
+    local preset_size = (last_child and last_child.type == "drop-down") and last_child.items[last_child.selected_index] or "small"
     ---@type preset?
-    local this_preset = presets.get_preset(dropdown.name, dropdown.items[dropdown.selected_index])
+    local this_preset = presets.get_preset(preset_name, preset_size)
     if not this_preset then return end
     for _, preset_element in pairs(this_preset) do
         for _, flow in pairs(elements_frame.children) do

@@ -1,3 +1,5 @@
+local util = require("util")
+
 ---@type table<string, preset>
 local presets = {
     belt = {
@@ -87,9 +89,13 @@ local presets = {
 }
 
 ---@type table<string, preset>
-if (not storage.presets) or storage.presets == {} then
-    storage.presets = util.copy(presets)
+local function ensure_presets_initialized()
+    if (not storage.presets) or next(storage.presets) == nil then
+        storage.presets = util.copy(presets)
+    end
 end
+
+ensure_presets_initialized()
 
 local out = {}
 
@@ -97,9 +103,7 @@ local out = {}
 ---@param size "small" | "medium" | "big"
 ---@return preset?
 function out.get_preset(name, size)
-    if (not storage.presets) or storage.presets == {} then
-        storage.presets = util.copy(presets)
-    end
+    ensure_presets_initialized()
     if (not storage.presets[name]) or (not storage.presets[name][size]) then
         return nil
     end
@@ -108,18 +112,14 @@ end
 
 ---@return preset[]
 function out.get_presets()
-    if (not storage.presets) or storage.presets == {} then
-        storage.presets = util.copy(presets)
-    end
+    ensure_presets_initialized()
     return util.copy(storage.presets)
 end
 
 ---@param name string
 ---@param preset table<string, preset>
 function out.add_preset(name, preset)
-    if not storage.presets or storage.presets == {} then
-        storage.presets = util.copy(presets)
-    end
+    ensure_presets_initialized()
     if storage.presets[name] then
         return nil
     end

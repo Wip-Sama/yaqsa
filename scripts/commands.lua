@@ -53,7 +53,7 @@ commands.add_command("force_quickstart", nil, function(command)
         player_functions.give_quickstart_to_player(player)
     elseif command.parameter == "all" then
         for _, p in pairs(game.players) do
-            quick.quickstart.retract_given_to(player.index)
+            quick.quickstart.retract_given_to(p.index)
             player_functions.give_quickstart_to_player(p)
         end
     elseif tonumber(command.parameter) ~= nil then
@@ -86,7 +86,7 @@ commands.add_command("retract_quickstart", nil, function(command)
         quick.quickstart.retract_given_to(player.index)
     elseif command.parameter == "all" then
         for _, p in pairs(game.players) do
-            quick.quickstart.retract_given_to(player.index)
+            quick.quickstart.retract_given_to(p.index)
         end
     elseif tonumber(command.parameter) ~= nil then
         local p = game.get_player(tonumber(command.parameter))
